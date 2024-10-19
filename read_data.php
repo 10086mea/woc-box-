@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 
-// 读取 user_data.json 的内容
+// 读取 user_data.json 内容
 $file = __DIR__ . '/user_data.json';
 if (file_exists($file)) {
     $jsonData = file_get_contents($file);
