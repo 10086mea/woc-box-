@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json');
-date_default_timezone_set('Asia/Shanghai'); // 设置时区为上海时间
+date_default_timezone_set('Asia/Shanghai'); //设置时区为上海时间
 // 获取POST请求中的数据
 $json = file_get_contents('php://input');
 $data = json_decode($json, true);
